@@ -78,7 +78,7 @@ def visit_website(base_url):
 
             driver.execute_script("window.scrollTo(0, 0);")
 
-            delay = random.uniform(60, 90)
+            delay = random.uniform(15, 60)
             print(f"Reloading the page in {delay:.2f} seconds...")
             time.sleep(delay)
     finally:
