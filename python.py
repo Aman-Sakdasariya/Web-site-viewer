@@ -6,13 +6,17 @@ import zipfile
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
+import logging
+
+# Configure logging to file
+logging.basicConfig(filename='background_script.log', level=logging.INFO)
 
 def download_edge_driver():
     edge_version = os.popen('wmic datafile where name="C:\\\\Program Files (x86)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe" get Version /value').read()
     edge_version = edge_version.strip().split("=")[-1]
     major_version = edge_version.split('.')[0]
     
-    print(f"Detected Edge version: {edge_version}")
+    logging.info(f"Detected Edge version: {edge_version}")
 
     driver_url = f"https://msedgedriver.azureedge.net/{edge_version}/edgedriver_win64.zip"
     
@@ -27,22 +31,21 @@ def download_edge_driver():
 
         os.remove('edgedriver.zip')
         
-        print("Edge WebDriver downloaded and extracted successfully.")
+        logging.info("Edge WebDriver downloaded and extracted successfully.")
     else:
-        raise Exception("Failed to download Edge WebDriver. Please check your internet connection or Edge version.")
+        logging.error("Failed to download Edge WebDriver. Please check your internet connection or Edge version.")
 
 def setup_driver():
     if not os.path.exists('msedgedriver.exe'):
         download_edge_driver()
 
     options = Options()
-    # Uncomment the following lines if you want to run the browser in headless mode
-    # options.add_argument("--headless=new")
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--disable-extensions")
+    options.add_argument("--headless")  # Run browser in headless mode
+    options.add_argument("--disable-gpu")  # Disable GPU acceleration
+    options.add_argument("--no-sandbox")  # Disable sandboxing for better performance
 
     driver = webdriver.Edge(options=options)
-    driver.maximize_window()  # Maximize the browser window
+    driver.set_window_position(-10000, -10000)  # Move browser window off-screen
 
     return driver
 
@@ -79,7 +82,7 @@ def visit_website(base_url):
             driver.execute_script("window.scrollTo(0, 0);")
 
             delay = random.uniform(15, 60)
-            print(f"Reloading the page in {delay:.2f} seconds...")
+            logging.info(f"Reloading the page in {delay:.2f} seconds...")
             time.sleep(delay)
     finally:
         driver.quit()
