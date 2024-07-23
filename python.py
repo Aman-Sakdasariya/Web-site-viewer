@@ -7,9 +7,45 @@ from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 import logging
+import tkinter as tk
 
 # Configure logging to file
 logging.basicConfig(filename='background_script.log', level=logging.INFO)
+
+# List of common user agents
+user_agents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
+    "Mozilla/5.0 (Linux; Android 11; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0",
+    "Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 10; SM-G960F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Mobile Safari/537.36"
+]
+
+# List of common referrer URLs
+referrers = [
+    "https://www.google.com/",
+    "https://www.facebook.com/",
+    "https://www.instagram.com/",
+    "https://www.twitter.com/",
+    "https://www.linkedin.com/",
+    "https://www.pinterest.com/",
+    "https://www.reddit.com/",
+    "https://www.tumblr.com/",
+    "https://www.quora.com/",
+    "https://www.snapchat.com/",
+    "https://www.medium.com/",
+    "https://www.whatsapp.com/",
+    "https://www.wechat.com/",
+    "https://www.yahoo.com/",
+    "https://www.bing.com/",
+    "https://www.duckduckgo.com/",
+    "https://www.yandex.com/"
+]
 
 def download_edge_driver():
     edge_version = os.popen('wmic datafile where name="C:\\\\Program Files (x86)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe" get Version /value').read()
@@ -44,8 +80,20 @@ def setup_driver():
     options.add_argument("--disable-gpu")  # Disable GPU acceleration
     options.add_argument("--no-sandbox")  # Disable sandboxing for better performance
 
+    # Randomly select a user agent
+    user_agent = random.choice(user_agents)
+    options.add_argument(f"user-agent={user_agent}")
+
     driver = webdriver.Edge(options=options)
     driver.set_window_position(-10000, -10000)  # Move browser window off-screen
+    # Get screen size using tkinter
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+
+    # Set window size to match screen size
+    driver.set_window_size(screen_width, screen_height)
 
     return driver
 
@@ -67,6 +115,11 @@ def visit_website(base_url):
     try:
         while True:
             random_page = get_random_page(driver, base_url)
+            
+            # Randomly select a referrer
+            referrer = random.choice(referrers)
+            driver.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Referer': referrer}})
+            
             driver.get(random_page)
 
             time.sleep(2)
